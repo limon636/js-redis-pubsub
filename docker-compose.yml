@@ -1,0 +1,78 @@
+version: "3.8"
+
+services:
+  front:
+    container_name: "front"
+    build: ./frontend/.
+    ports:
+      - "3000:3000"
+    networks:
+      - abcnetwork
+    depends_on:
+      - redis
+      - mysqldb
+      - backend
+      - worker
+
+  backend:
+    container_name: "backend"
+    build: ./backend/.
+    environment:
+      - PORT=8001
+      - REDIS_PASSWORD=${REDIS_PASS}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_CHANNEL=${REDIS_CHANNEL}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USERNAME=${MYSQL_USERNAME}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_TABLE=${MYSQL_TABLE}
+    ports:
+      - "8001:8001"
+    networks:
+      - abcnetwork
+    depends_on:
+      - mysqldb
+      - redis
+      - worker
+
+  worker:
+    container_name: "worker"
+    build: ./worker/.
+    environment:
+      - PORT=8002
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USERNAME=${MYSQL_USERNAME}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_TABLE=${MYSQL_TABLE}
+      - REDIS_PASSWORD=${REDIS_PASS}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_CHANNEL=${REDIS_CHANNEL}
+    networks:
+      - abcnetwork
+    depends_on:
+      - mysqldb
+      - redis
+
+  mysqldb:
+    container_name: "mysqldb"
+    build: ./mysqldb/.
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    networks:
+      - abcnetwork
+
+  redis:
+    container_name: "redis-container"
+    image: "redis:latest"
+    command: redis-server --save 20 1 --loglevel warning --requirepass abcpassword
+    restart: always
+    networks:
+      - abcnetwork
+
+networks:
+  abcnetwork:
+    driver: bridge
