@@ -20,3 +20,9 @@ git clone https://github.com/limon636/js-redis-pubsub.git
 cd js-redis-pubsub
 docker-compose up
 ```
+
+Now visit:
+
+http://localhost:3000/
+
+Thanks for reading...
